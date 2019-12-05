@@ -18,6 +18,7 @@ function start-work-container
             -t \
             --rm \
             -p 3000:3000 \
+            -p 22:3022 \
             --mount "type=bind,source=$HOME/.bashrc,target=$HOME/.bashrc" \
             --mount "type=bind,source=$fullPath,target=$fullPath" \
             --workdir="$fullPath" \
