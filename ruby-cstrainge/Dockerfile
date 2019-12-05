@@ -11,11 +11,7 @@ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
 apt update && \
 apt upgrade -y && \
-apt install -y nodejs npm yarn lsb-base lsb-release sudo tree htop curl wget openssh-server
-
-
-
-ENTRYPOINT ["/init"]
+apt install -y nodejs npm yarn lsb-base lsb-release sudo tree htop curl wget net-tools
 
 
 
@@ -28,10 +24,10 @@ EXPOSE 3000 22
 RUN \
 useradd -ms /bin/bash cstrainge && \
 echo "cstrainge ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-echo 'cstrainge:password' | chpasswd && \
 mkdir /home/cstrainge/workdir && \
 chown cstrainge.cstrainge /home/cstrainge/workdir
 
+#echo 'cstrainge:password' | chpasswd && \
 
 
 # Ok, switch to my user account and get some config setup.
@@ -42,8 +38,27 @@ ENV HOME /home/cstrainge
 
 
 
+RUN sudo apt-get install -y openssh-server
+RUN sudo mkdir -p /var/run/sshd
+RUN sudo mkdir -p /etc/ssh
+RUN sudo touch /etc/ssh/sshd_config
+RUN sudo sed -i "s/UsePrivilegeSeparation.*/UsePrivilegeSeparation no/g" /etc/ssh/sshd_config
+RUN sudo sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sudo touch /root/.Xauthority
+
+
+ARG SSH_KEY
+ENV SSH_KEY=$SSH_KEY
+
+RUN mkdir -p /home/cstrainge/.ssh/
+RUN echo ${SSH_KEY} | cat > /home/cstrainge/.ssh/authorized_keys
+RUN chmod o-rw /home/cstrainge/.ssh/
+RUN chmod g-rw /home/cstrainge/.ssh/
+
+
+
 # TODO: This doesn't seem to be working, so I need to look into this.
-# RUN gem install rails
+RUN gem install rails --user-install
 
 
 
@@ -55,6 +70,11 @@ git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Crese
 git config --global user.email "nullptr.0@gmail.com" && \
 git config --global user.name "Chloë Strainge" && \
 git config --global core.editor "vim"
+
+
+
+ADD .extra-init.sh /home/cstrainge
+RUN sudo chown cstrainge.cstrainge .extra-init.sh
 
 
 

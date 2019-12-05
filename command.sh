@@ -18,11 +18,11 @@ function start-work-container
             -t \
             --rm \
             -p 3000:3000 \
-            -p 22:3022 \
+            -p 3022:22 \
             --mount "type=bind,source=$HOME/.bashrc,target=$HOME/.bashrc" \
             --mount "type=bind,source=$fullPath,target=$fullPath" \
             --workdir="$fullPath" \
-            ruby-cstrainge:latest \
+            ruby-cstrainge:1.0 \
             /bin/bash
     else
         echo "Project directory $fullPath does not exist."
